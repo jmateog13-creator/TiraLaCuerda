@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../../shared_lib"
+		},
+		{
+			"path": "../../skills_vault"
+		}
+	],
+	"settings": {}
+}

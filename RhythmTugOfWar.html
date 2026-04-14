@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>RHYTHM TUG-OF-WAR: El Duel de Compassos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --blue-team: #2563eb;
+            --red-team: #dc2626;
+            --bg-color: #f1f5f9;
+            --glass-bg: rgba(255, 255, 255, 0.9);
+            --text-dark: #1e293b;
+            --rope-color: #a16207;
+            --success: #10b981;
+            --error: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1, h2, h3 { font-family: 'Outfit', sans-serif; }
+
+        /* --- SCREEN MANAGEMENT --- */
+        .screen {
+            position: fixed;
+            inset: 0;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            background: var(--bg-color);
+            padding: 2rem;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        #game-screen.active {
+            display: grid;
+        }
+
+        /* --- MENU SCREEN --- */
+        #start-screen {
+            background: #ffffff;
+        }
+
+        .menu-card {
+            background: white;
+            padding: 3rem 4rem;
+            border-radius: 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .menu-card::before {
+            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 10px;
+            background: linear-gradient(90deg, var(--blue-team), var(--red-team));
+        }
+
+        .title-fancy {
+            font-size: 3.5rem; font-weight: 800; margin-bottom: 0.5rem;
+            background: linear-gradient(90deg, var(--blue-team), var(--red-team));
+            -webkit-background-clip: text;
+            background-clip: text; /* Standard property for compatibility */
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -2px;
+        }
+
+        .subtitle { margin-bottom: 2.5rem; color: #64748b; font-size: 1.1rem; line-height: 1.6; }
+
+        .btn-group { display: flex; gap: 1.5rem; justify-content: center; margin-bottom: 2rem; }
+
+        .main-btn {
+            padding: 1.5rem; font-size: 1.2rem; font-weight: 800; border: none; border-radius: 1.5rem;
+            cursor: pointer; transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex; flex-direction: column; align-items: center; gap: 0.5rem; min-width: 280px;
+        }
+
+        .btn-blue { background: var(--blue-team); color: white; }
+        .btn-red { background: #334155; color: white; } 
+        
+        .main-btn:hover { transform: translateY(-5px); filter: brightness(1.1); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .main-btn:active { transform: scale(0.95); }
+
+        /* --- NEW LEVEL SELECTOR --- */
+        .level-selector-complex {
+            margin-top: 1.5rem;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 1.5rem;
+            border: 1px solid #e2e8f0;
+        }
+        .level-group-row {
+            margin-bottom: 2rem;
+            text-align: left;
+        }
+        .group-header {
+            font-size: 0.8rem;
+            font-weight: 800;
+            color: #94a3b8;
+            text-transform: uppercase;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .group-header::after {
+            content: ""; flex-grow: 1; height: 1px; background: #e2e8f0;
+        }
+        .level-btns-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+        }
+        .level-btn {
+            background: white;
+            border: 2px solid #e2e8f0;
+            padding: 0.8rem;
+            border-radius: 1rem;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #64748b;
+        }
+        .level-btn i { font-size: 0.7rem; font-weight: 400; font-style: normal; opacity: 0.6; }
+        .level-btn:hover { border-color: var(--blue-team); color: var(--blue-team); transform: translateY(-2px); }
+        .level-btn.active { background: #eff6ff; border-color: var(--blue-team); color: var(--blue-team); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1); }
+
+        .btn-exit {
+            position: absolute; top: 1rem; right: 1rem; width: 40px; height: 40px;
+            background: white; border: 1px solid #e2e8f0; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; z-index: 500; font-size: 1.2rem; transition: all 0.2s;
+        }
+        .btn-exit:hover { background: #fee2e2; border-color: #ef4444; color: #ef4444; transform: rotate(90deg); }
+
+        /* Scrollbar styling */
+        .level-selector-complex::-webkit-scrollbar { width: 6px; }
+        .level-selector-complex::-webkit-scrollbar-track { background: transparent; }
+        .level-selector-complex::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        
+        /* --- GAME SCREEN LAYOUT --- */
+        #game-screen {
+            position: fixed; inset: 0; display: grid; 
+            grid-template-columns: 1fr 2fr 1fr; /* 1/4, 2/4, 1/4 distribution */
+            height: 100vh; width: 100vw; background: #fff; z-index: 10;
+            align-items: stretch; /* Ensure panels fill vertical space */
+        }
+        .side-panel {
+            display: flex; flex-direction: column; padding: 1.25rem; position: relative;
+            background: #f8fafc; border-left: 1px solid #f1f5f9; border-right: 1px solid #f1f5f9;
+            transition: background 0.3s;
+            min-width: 0; overflow: hidden; z-index: 100; /* Above the rope if it leaks */
+        }
+        .side-panel.success-flash { background-color: rgba(16, 185, 129, 0.1); }
+        .side-panel.error-flash { background-color: rgba(239, 68, 68, 0.1); }
+
+        .team-header { padding: 1rem; border-radius: 1.25rem; color: white; text-align: center; margin-bottom: 1.5rem; }
+        .blue-header { background: var(--blue-team); }
+        .red-header { background: var(--red-team); }
+        .score-box { font-size: 2.5rem; font-weight: 800; margin-top: 0.25rem; }
+
+        .instruction-hint { font-size: 0.9rem; font-weight: 700; color: #94a3b8; margin-bottom: 1rem; text-transform: uppercase; }
+
+        /* --- RHYTHMIC PAD --- */
+        .challenge-container { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 1.5rem; }
+
+        .puzzle-display {
+            background: white; border-radius: 2rem; width: 100%; min-height: 90px;
+            display: flex; justify-content: center; align-items: center; gap: 0.5rem;
+            flex-wrap: wrap; row-gap: 0.5rem;
+            border: 2px solid #e2e8f0;
+            border-right: 6px solid #cbd5e1;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+            color: #1e293b; position: relative; padding: 0.75rem 1rem;
+        }
+
+        .time-signature {
+            font-size: 1.4rem; font-weight: 800; color: #94a3b8; padding-right: 1rem; margin-right: 0.5rem;
+            border-right: 2px solid #f1f5f9; display: flex; flex-direction: column; align-items: center; line-height: 1;
+        }
+
+        .puzzle-item { display: flex; align-items: center; justify-content: center; height: 50px; min-width: 35px; }
+        .puzzle-item svg { width: 40px; height: 40px; color: #1e293b; fill: currentColor; }
+        .puzzle-item.missing {
+            width: 70px; height: 70px; border: 4px dashed var(--blue-team); border-radius: 1rem;
+            background: #eff6ff; display: flex; justify-content: center; align-items: center;
+            color: var(--blue-team); font-size: 2rem; font-weight: 800;
+        }
+        .puzzle-item.missing.missing-red {
+            border-color: var(--red-team); background: #fef2f2; color: var(--red-team);
+        }
+
+        .plus-sign { font-size: 1.25rem; font-weight: 800; color: #e2e8f0; padding: 0 0.25rem; }
+        /* bar-line replaced by border-right on .puzzle-display */
+
+        .rhythmic-pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem; width: 100%; }
+        .rhythm-btn {
+            background: white; border: 2px solid #f1f5f9; border-radius: 1rem; aspect-ratio: 1;
+            cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: all 0.1s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.02); color: #334155;
+        }
+        .rhythm-btn:hover { background: #f8fafc; border-color: #cbd5e1; transform: translateY(-2px); }
+        .rhythm-btn:active { transform: scale(0.9); }
+        .rhythm-btn svg { width: 40%; height: 40%; fill: currentColor; }
+        .rhythm-btn span { margin-top: 0.2rem; font-size: 0.6rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; }
+
+        /* --- CENTRAL ROPE AREA --- */
+        #center-area {
+            position: relative; display: flex; flex-direction: column; align-items: center;
+            overflow: hidden; /* Clip the rope horizontally */
+            background: #fff; padding-top: 2rem;
+            min-width: 0; height: 100%;
+        }
+
+        .timer-top {
+            background: white; padding: 0.8rem 2rem; border-radius: 3rem; font-size: 2.5rem;
+            font-weight: 800; color: #1e293b; box-shadow: 0 15px 30px rgba(0,0,0,0.05);
+            display: flex; align-items: center; gap: 0.8rem; z-index: 200; border: 2px solid #f1f5f9;
+        }
+        .timer-icon { width: 32px; height: 32px; color: #94a3b8; }
+
+        /* The Rope */
+        .rope-container { 
+            position: absolute; top: 45%; left: 0; width: 100%; height: 100px; 
+            display: flex; align-items: center; justify-content: center; 
+        }
+        .rope {
+            position: absolute; width: 400%; height: 24px;
+            background: linear-gradient(90deg, #a16207 0%, #d97706 50%, #a16207 100%);
+            background-size: 80px 100%; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1);
+            border: 2px solid rgba(0,0,0,0.1);
+        }
+        .rope-center-mark {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 60px; height: 60px; background: #ef4444; border: 8px solid white;
+            border-radius: 8px; rotate: 45deg; box-shadow: 0 15px 25px rgba(0,0,0,0.2);
+            z-index: 100; transition: left 0.4s cubic-bezier(0.175, 0.885, 0.32, 1);
+        }
+
+        /* Tugging Figures - Much bigger */
+        .team-representation {
+            position: absolute; bottom: 0; width: 100%; height: 500px;
+            display: flex; justify-content: space-between; padding: 0 1rem; pointer-events: none; z-index: 50;
+        }
+        .puller-group { display: flex; align-items: flex-end; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1); height: 100%; }
+        .puller { width: 200px; height: 350px; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.05)); }
+
+        /* --- RESULTS SCREEN --- */
+        #result-screen h2 { font-size: 5rem; margin-bottom: 2rem; letter-spacing: -3px; }
+        .winner-blue { color: var(--blue-team); }
+        .winner-red { color: var(--red-team); }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        .shake { animation: shake 0.15s ease-in-out 3; }
+
+        @media (max-width: 1200px) {
+            #game-screen { grid-template-columns: 1fr 1fr 1fr; }
+            .puller { width: 150px; height: 250px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- START SCREEN -->
+    <div id="start-screen" class="screen active" style="display: flex; opacity: 1;">
+        <div class="menu-card">
+            <h1 class="title-fancy">RHYTHM TUG-OF-WAR</h1>
+            <p class="subtitle">Aprèn compassos musicals amb agilitat mental.<br>Completa el ritme per guanyar el duel de força.</p>
+            
+            <div class="btn-group">
+                <button class="main-btn btn-blue" onpointerdown="startGame('ia')">
+                    <span style="font-size: 2.5rem;">🤖</span>
+                    <span>Vs LA IA <br><small>Millora la teva tècnica sol</small></span>
+                </button>
+                <button class="main-btn btn-red" onpointerdown="startGame('duel')">
+                    <span style="font-size: 2.5rem;">🎮</span>
+                    <span>DUEL 1 VS 1 <br><small>Juga amb un amic</small></span>
+                </button>
+            </div>
+
+            <div class="difficulty-section">
+                <span class="difficulty-label">Selecciona el Repte</span>
+                <div id="level-grid" class="level-selector-complex">
+                    <!-- JS generated or Hardcoded -->
+                    <div class="level-group-row">
+                        <div class="group-header">Compassos Simples</div>
+                        <div class="level-btns-container">
+                            <button class="level-btn active" onclick="setLevel(1,1)">1.1 2/4<i>Sub 1</i></button>
+                            <button class="level-btn" onclick="setLevel(1,2)">1.2 2/4<i>Sub 2</i></button>
+                            <button class="level-btn" onclick="setLevel(1,3)">1.3 2/4<i>Sub 3</i></button>
+                            <button class="level-btn" onclick="setLevel(2,1)">2.1 3/4<i>Sub 1</i></button>
+                            <button class="level-btn" onclick="setLevel(2,2)">2.2 3/4<i>Sub 2</i></button>
+                            <button class="level-btn" onclick="setLevel(2,3)">2.3 3/4<i>Sub 3</i></button>
+                            <button class="level-btn" onclick="setLevel(3,1)">3.1 4/4<i>Sub 1</i></button>
+                            <button class="level-btn" onclick="setLevel(3,2)">3.2 4/4<i>Sub 2</i></button>
+                            <button class="level-btn" onclick="setLevel(3,3)">3.3 4/4<i>Sub 3</i></button>
+                            <button class="level-btn" onclick="setLevel(4,1)">4.1 Mix<i>Sub 1</i></button>
+                            <button class="level-btn" onclick="setLevel(4,2)">4.2 Mix<i>Sub 2</i></button>
+                            <button class="level-btn" onclick="setLevel(4,3)">4.3 Mix<i>Sub 3</i></button>
+                        </div>
+                    </div>
+                    <div class="level-group-row">
+                        <div class="group-header">Compassos Compostos</div>
+                        <div class="level-btns-container">
+                            <button class="level-btn" onclick="setLevel(5,1)">5.1 6/8<i>Sub 1</i></button>
+                            <button class="level-btn" onclick="setLevel(5,2)">5.2 6/8<i>Sub 2</i></button>
+                            <button class="level-btn" onclick="setLevel(5,3)">5.3 6/8<i>Sub 3</i></button>
+                            <button class="level-btn" onclick="setLevel(6,1)">6.1 9/8<i>Sub 1</i></button>
+                            <button class="level-btn" onclick="setLevel(6,2)">6.2 9/8<i>Sub 2</i></button>
+                            <button class="level-btn" onclick="setLevel(6,3)">6.3 9/8<i>Sub 3</i></button>
+                            <button class="level-btn" onclick="setLevel(7,1)">7.1 12/8<i>Sub 1</i></button>
+                            <button class="level-btn" onclick="setLevel(7,2)">7.2 12/8<i>Sub 2</i></button>
+                            <button class="level-btn" onclick="setLevel(7,3)">7.3 12/8<i>Sub 3</i></button>
+                            <button class="level-btn" onclick="setLevel(8,1)">8.1 Mix<i>Sub 1</i></button>
+                            <button class="level-btn" onclick="setLevel(8,2)">8.2 Mix<i>Sub 2</i></button>
+                            <button class="level-btn" onclick="setLevel(8,3)">8.3 Mix<i>Sub 3</i></button>
+                        </div>
+                    </div>
+                    <div class="level-group-row">
+                        <div class="group-header">Duel Mestre</div>
+                        <div class="level-btns-container">
+                            <button class="level-btn" onclick="setLevel(9,1)">9.1 Mestre<i>Sub 1</i></button>
+                            <button class="level-btn" onclick="setLevel(9,2)">9.2 Mestre<i>Sub 2</i></button>
+                            <button class="level-btn" onclick="setLevel(9,3)">9.3 Mestre<i>Sub 3</i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-screen" class="screen" style="display: none;">
+        <button class="btn-exit" onclick="resetToMenu()">✕</button>
+        <!-- BLUE PANEL (LEFT) -->
+        <div id="panel-left" class="side-panel">
+            <div class="team-header blue-header">
+                <h2>JUGADOR 1</h2>
+                <div id="score-left" class="score-box">0</div>
+            </div>
+            
+            <div class="challenge-container">
+                <span class="instruction-hint">Completa el compàs!</span>
+                <div id="puzzle-left" class="puzzle-display"></div>
+
+                <div class="rhythmic-pad">
+                    <button class="rhythm-btn" onpointerdown="submitAnswer('left', 1.0)">
+                        <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="22" stroke="currentColor" stroke-width="6" fill="none"/></svg>
+                        <span>Rodona</span>
+                    </button>
+                    <button class="rhythm-btn" onpointerdown="submitAnswer('left', 0.5)">
+                        <svg viewBox="0 0 100 100"><circle cx="45" cy="75" r="14" stroke="currentColor" stroke-width="6" fill="none"/><path d="M59 75 L59 15" stroke="currentColor" stroke-width="6" fill="none"/></svg>
+                        <span>Blanca</span>
+                    </button>
+                    <button class="rhythm-btn" onpointerdown="submitAnswer('left', 0.25)">
+                        <svg viewBox="0 0 100 100"><circle cx="45" cy="75" r="14" fill="currentColor"/><path d="M59 75 L59 15" stroke="currentColor" stroke-width="6" fill="none"/></svg>
+                        <span>Negra</span>
+                    </button>
+                    <button class="rhythm-btn" onpointerdown="submitAnswer('left', 0.125)">
+                        <svg viewBox="0 0 100 100"><circle cx="45" cy="75" r="14" fill="currentColor"/><path d="M59 75 L59 15 Q80 35 80 50" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round"/></svg>
+                        <span>Corxera</span>
+                    </button>
+                    <button class="rhythm-btn" onpointerdown="submitAnswer('left', 0.0625)">
+                        <svg viewBox="0 0 100 100"><circle cx="45" cy="75" r="14" fill="currentColor"/><path d="M59 75 L59 15 Q80 30 80 40 M59 35 Q80 45 80 55" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round"/></svg>
+                        <span>Semicorx.</span>
+                    </button>
+                    <button class="rhythm-btn dot-btn" onpointerdown="submitAnswer('left', 0.75)">
+                        <svg viewBox="0 0 100 100"><circle cx="40" cy="75" r="14" stroke="currentColor" stroke-width="6" fill="none"/><path d="M54 75 L54 15" stroke="currentColor" stroke-width="6" fill="none"/><circle cx="66" cy="68" r="7" fill="currentColor"/></svg>
+                        <span>Bl. Puntet</span>
+                    </button>
+                    <button class="rhythm-btn dot-btn" onpointerdown="submitAnswer('left', 0.375)">
+                        <svg viewBox="0 0 100 100"><circle cx="40" cy="75" r="14" fill="currentColor"/><path d="M54 75 L54 15" stroke="currentColor" stroke-width="6" fill="none"/><circle cx="66" cy="68" r="7" fill="currentColor"/></svg>
+                        <span>Ne. Puntet</span>
+                    </button>
+                    <button class="rhythm-btn dot-btn" onpointerdown="submitAnswer('left', 0.1875)">
+                        <svg viewBox="0 0 100 100"><circle cx="40" cy="75" r="14" fill="currentColor"/><path d="M54 75 L54 15 Q75 35 75 50" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round"/><circle cx="66" cy="68" r="7" fill="currentColor"/></svg>
+                        <span>Co. Puntet</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- CENTER AREA -->
+        <div id="center-area">
+            <div id="timer-box" class="timer-top">
+                <svg class="timer-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span id="timer-val">60</span>
+            </div>
+
+            <div class="rope-container">
+                <div id="visual-rope" class="rope"></div>
+                <div id="rope-mark" class="rope-center-mark"></div>
+            </div>
+
+            <div class="team-representation">
+                <div id="blue-figures" class="puller-group">
+                    <svg class="puller" viewBox="0 0 100 200"><circle cx="50" cy="35" r="22" fill="var(--blue-team)"/><path d="M50 57 L50 120 L25 185 M50 120 L75 185 M20 90 L85 105" stroke="var(--blue-team)" stroke-width="12" fill="none" stroke-linecap="round"/></svg>
+                    <svg class="puller" viewBox="0 0 100 200" style="margin-left: -100px;"><circle cx="50" cy="35" r="22" fill="var(--blue-team)"/><path d="M50 57 L50 120 L25 185 M50 120 L75 185 M20 90 L85 105" stroke="var(--blue-team)" stroke-width="12" fill="none" stroke-linecap="round"/></svg>
+                </div>
+                <div id="red-figures" class="puller-group">
+                    <svg class="puller" viewBox="0 0 100 200" style="margin-right: -100px; transform: scaleX(-1);"><circle cx="50" cy="35" r="22" fill="var(--red-team)"/><path d="M50 57 L50 120 L25 185 M50 120 L75 185 M20 90 L85 105" stroke="var(--red-team)" stroke-width="12" fill="none" stroke-linecap="round"/></svg>
+                    <svg class="puller" viewBox="0 0 100 200" style="transform: scaleX(-1);"><circle cx="50" cy="35" r="22" fill="var(--red-team)"/><path d="M50 57 L50 120 L25 185 M50 120 L75 185 M20 90 L85 105" stroke="var(--red-team)" stroke-width="12" fill="none" stroke-linecap="round"/></svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- RED PANEL (RIGHT) -->
+        <div id="panel-right" class="side-panel">
+            <div class="team-header red-header">
+                <h2 id="red-team-label">IA</h2>
+                <div id="score-right" class="score-box">0</div>
+            </div>
+
+            <div class="challenge-container">
+                <span class="instruction-hint">Completa el compàs!</span>
+                <div id="puzzle-right" class="puzzle-display"></div>
+
+                <div id="pad-right" class="rhythmic-pad">
+                    <button class="rhythm-btn" onpointerdown="submitAnswer('right', 1.0)"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="22" stroke="currentColor" stroke-width="6" fill="none"/></svg><span>Rodona</span></button>
+                    <button class="rhythm-btn" onpointerdown="submitAnswer('right', 0.5)"><svg viewBox="0 0 100 100"><circle cx="45" cy="75" r="14" stroke="currentColor" stroke-width="6" fill="none"/><path d="M59 75 L59 15" stroke="currentColor" stroke-width="6" fill="none"/></svg><span>Blanca</span></button>
+                    <button class="rhythm-btn" onpointerdown="submitAnswer('right', 0.25)"><svg viewBox="0 0 100 100"><circle cx="45" cy="75" r="14" fill="currentColor"/><path d="M59 75 L59 15" stroke="currentColor" stroke-width="6" fill="none"/></svg><span>Negra</span></button>
+                    <button class="rhythm-btn" onpointerdown="submitAnswer('right', 0.125)"><svg viewBox="0 0 100 100"><circle cx="45" cy="75" r="14" fill="currentColor"/><path d="M59 75 L59 15 Q80 35 80 50" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round"/></svg><span>Corxera</span></button>
+                    <button class="rhythm-btn" onpointerdown="submitAnswer('right', 0.0625)"><svg viewBox="0 0 100 100"><circle cx="45" cy="75" r="14" fill="currentColor"/><path d="M59 75 L59 15 Q80 30 80 40 M59 35 Q80 45 80 55" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round"/></svg><span>Semicorx.</span></button>
+                    <button class="rhythm-btn dot-btn" onpointerdown="submitAnswer('right', 0.75)"><svg viewBox="0 0 100 100"><circle cx="40" cy="75" r="14" stroke="currentColor" stroke-width="6" fill="none"/><path d="M54 75 L54 15" stroke="currentColor" stroke-width="6" fill="none"/><circle cx="66" cy="68" r="7" fill="currentColor"/></svg><span>Bl. Puntet</span></button>
+                    <button class="rhythm-btn dot-btn" onpointerdown="submitAnswer('right', 0.375)"><svg viewBox="0 0 100 100"><circle cx="40" cy="75" r="14" fill="currentColor"/><path d="M54 75 L54 15" stroke="currentColor" stroke-width="6" fill="none"/><circle cx="66" cy="68" r="7" fill="currentColor"/></svg><span>Ne. Puntet</span></button>
+                    <button class="rhythm-btn dot-btn" onpointerdown="submitAnswer('right', 0.1875)"><svg viewBox="0 0 100 100"><circle cx="40" cy="75" r="14" fill="currentColor"/><path d="M54 75 L54 15 Q75 35 75 50" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round"/><circle cx="66" cy="68" r="7" fill="currentColor"/></svg><span>Co. Puntet</span></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RESULT SCREEN -->
+    <div id="result-screen" class="screen" style="display: none;">
+        <div class="menu-card">
+            <h2 id="victory-text">VICTÒRIA!</h2>
+            <p id="victory-sub" class="subtitle">Mestratge rítmic absolut!</p>
+            <div class="btn-group">
+                <button class="main-btn btn-blue" onpointerdown="resetToMenu()"><span style="font-size: 2rem;">🏠</span><span>TORNAR A L'INICI</span></button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const FIGURES = [
+            { id: 'redonda',        value: 1.0,    dotted: false, icon: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="30" stroke="currentColor" stroke-width="6" fill="none"/></svg>' },
+            { id: 'blanca',         value: 0.5,    dotted: false, icon: '<svg viewBox="0 0 100 100"><circle cx="45" cy="75" r="15" stroke="currentColor" stroke-width="6" fill="none"/><path d="M60 75 L60 15" stroke="currentColor" stroke-width="6" fill="none"/></svg>' },
+            { id: 'negra',          value: 0.25,   dotted: false, icon: '<svg viewBox="0 0 100 100"><circle cx="45" cy="75" r="15" fill="currentColor"/><path d="M60 75 L60 15" stroke="currentColor" stroke-width="6" fill="none"/></svg>' },
+            { id: 'corchea',        value: 0.125,  dotted: false, icon: '<svg viewBox="0 0 100 100"><circle cx="45" cy="75" r="15" fill="currentColor"/><path d="M60 75 L60 15 Q85 40 85 55" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round"/></svg>' },
+            { id: 'semicorchea',    value: 0.0625, dotted: false, icon: '<svg viewBox="0 0 100 100"><circle cx="45" cy="75" r="15" fill="currentColor"/><path d="M60 75 L60 15 Q85 30 85 45 M60 30 Q85 45 85 60" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round"/></svg>' },
+            { id: 'blanca-p',       value: 0.75,   dotted: true,  icon: '<svg viewBox="0 0 100 100"><circle cx="40" cy="75" r="14" stroke="currentColor" stroke-width="6" fill="none"/><path d="M54 75 L54 15" stroke="currentColor" stroke-width="6" fill="none"/><circle cx="67" cy="68" r="7" fill="currentColor"/></svg>' },
+            { id: 'negra-p',        value: 0.375,  dotted: true,  icon: '<svg viewBox="0 0 100 100"><circle cx="40" cy="75" r="14" fill="currentColor"/><path d="M54 75 L54 15" stroke="currentColor" stroke-width="6" fill="none"/><circle cx="67" cy="68" r="7" fill="currentColor"/></svg>' },
+            { id: 'corchea-p',      value: 0.1875, dotted: true,  icon: '<svg viewBox="0 0 100 100"><circle cx="40" cy="75" r="14" fill="currentColor"/><path d="M54 75 L54 15 Q75 35 75 50" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round"/><circle cx="67" cy="68" r="7" fill="currentColor"/></svg>' }
+        ];
+
+        const LEVEL_GROUPS = [
+            { id: 1, name: '2/4', sigs: ['2/4'], dots: false, desc: 'Mètrica Simple' },
+            { id: 2, name: '3/4', sigs: ['3/4'], dots: false, desc: 'Mètrica Simple' },
+            { id: 3, name: '4/4', sigs: ['4/4'], dots: false, desc: 'Mètrica Simple' },
+            { id: 4, name: 'MIX S.', sigs: ['2/4', '3/4', '4/4'], dots: true, desc: 'Mescla Simple' },
+            { id: 5, name: '6/8', sigs: ['6/8'], dots: true, desc: 'Mètrica Composta' },
+            { id: 6, name: '9/8', sigs: ['9/8'], dots: true, desc: 'Mètrica Composta' },
+            { id: 7, name: '12/8', sigs: ['12/8'], dots: true, desc: 'Mètrica Composta' },
+            { id: 8, name: 'MIX C.', sigs: ['6/8', '9/8', '12/8'], dots: true, desc: 'Mescla Composta' },
+            { id: 9, name: 'MASTER', sigs: ['2/4', '3/4', '4/4', '6/8', '9/8', '12/8'], dots: true, desc: 'Repàs Total' }
+        ];
+
+        let state = {
+            mode: 'duel',
+            currentLevel: 1,
+            currentSub: 1,
+            timer: 60,
+            ropePos: 50, 
+            scoreLeft: 0,
+            scoreRight: 0,
+            currentPuzzleLeft: null,
+            currentPuzzleRight: null,
+            isPlaying: false,
+            timerInterval: null,
+            aiTimeout: null
+        };
+
+        const DOM = {
+            screens: { start: document.getElementById('start-screen'), game: document.getElementById('game-screen'), result: document.getElementById('result-screen') },
+            scoreLeft: document.getElementById('score-left'),
+            scoreRight: document.getElementById('score-right'),
+            timer: document.getElementById('timer-val'),
+            rope: document.getElementById('visual-rope'),
+            ropeMark: document.getElementById('rope-mark'),
+            puzzleLeft: document.getElementById('puzzle-left'),
+            puzzleRight: document.getElementById('puzzle-right'),
+            victoryText: document.getElementById('victory-text'),
+            victorySub: document.getElementById('victory-sub'),
+            blueFigures: document.getElementById('blue-figures'),
+            redFigures: document.getElementById('red-figures'),
+            padRight: document.getElementById('pad-right'),
+            redTeamLabel: document.getElementById('red-team-label')
+        };
+
+        function setLevel(lvl, sub) {
+            state.currentLevel = lvl;
+            state.currentSub = sub;
+            document.querySelectorAll('.level-btn').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.querySelector(`[onclick="setLevel(${lvl}, ${sub})"]`);
+            if (activeBtn) activeBtn.classList.add('active');
+        }
+
+        function startGame(mode) {
+            state.mode = mode;
+            state.isPlaying = true;
+            state.timer = 60;
+            state.ropePos = 50;
+            state.scoreLeft = 0; state.scoreRight = 0;
+
+            updateRopeUI();
+            DOM.scoreLeft.innerText = "0"; DOM.scoreRight.innerText = "0";
+            DOM.timer.innerText = state.timer;
+            
+            const levelData = LEVEL_GROUPS.find(g => g.id === state.currentLevel);
+            const showDots = levelData.dots || state.currentSub === 3;
+            document.querySelectorAll('.dot-btn').forEach(btn => {
+                btn.style.display = showDots ? 'flex' : 'none';
+            });
+
+            if (mode === 'ia') {
+                DOM.padRight.style.pointerEvents = 'none'; DOM.padRight.style.opacity = '0.2';
+                const levelName = levelData.name;
+                DOM.redTeamLabel.innerText = "IA (" + levelName + " Sub " + state.currentSub + ")";
+                startAI();
+            } else {
+                DOM.padRight.style.pointerEvents = 'all'; DOM.padRight.style.opacity = '1';
+                DOM.redTeamLabel.innerText = "JUGADOR 2";
+            }
+
+            // Display adjustment
+            DOM.screens.start.classList.remove('active');
+            DOM.screens.start.style.display = 'none';
+            DOM.screens.game.style.display = 'grid';
+            DOM.screens.game.classList.add('active');
+
+            newPuzzle('left'); newPuzzle('right');
+
+            if (state.timerInterval) clearInterval(state.timerInterval);
+            state.timerInterval = setInterval(() => {
+                state.timer--;
+                DOM.timer.innerText = state.timer;
+                if (state.timer <= 0) endGame('timeout');
+            }, 1000);
+        }
+
+        function getAvailableFigures() {
+            const levelData = LEVEL_GROUPS.find(g => g.id === state.currentLevel);
+            // Higher sub-levels or specific groups enable dotted notes
+            const useDotted = levelData.dots || state.currentSub === 3;
+            // Also restrict smaller notes in sub-level 1
+            let avail = FIGURES;
+            if (state.currentSub === 1) {
+                avail = FIGURES.filter(f => f.value >= 0.25); // Minimum Negra
+            }
+            return useDotted ? avail : avail.filter(f => !f.dotted);
+        }
+
+        function generateBar() {
+            const levelData = LEVEL_GROUPS.find(g => g.id === state.currentLevel);
+            const signatureStr = levelData.sigs[Math.floor(Math.random() * levelData.sigs.length)];
+            
+            // Calculate barMax based on signature
+            const [num, den] = signatureStr.split('/').map(Number);
+            const barMax = (num * (1 / den)) / 0.25 * 0.25; // Normalizing to our figure units (1.0 = 4/4)
+            // Wait, our 1.0 = 4 beats. 
+            // 2/4 = 2 beats = 0.5
+            // 6/8 = 6 * 1/8 = 0.75 beats (relative to 4/4=1)
+            // The math is: (num / den) * 4 * 0.25 = num / den. 
+            // Example 6/8: 6/8 = 0.75. Correct.
+            const totalTarget = num / den * 1.0; 
+
+            const avail = getAvailableFigures();
+            const candidates = avail.filter(f => f.value <= totalTarget);
+            
+            // To ensure we don't get infinite loops, we'll try a few times
+            let attempts = 0;
+            while (attempts < 50) {
+                let parts = [];
+                let currentSum = 0;
+                
+                // Fill the bar
+                while (currentSum < totalTarget - 0.0001) {
+                    const remaining = totalTarget - currentSum;
+                    const possible = avail.filter(f => f.value <= remaining + 0.0001);
+                    if (possible.length === 0) break;
+                    
+                    const pick = possible[Math.floor(Math.random() * possible.length)];
+                    parts.push({...pick});
+                    currentSum += pick.value;
+                }
+
+                // If bar is full, we can proceed
+                if (Math.abs(currentSum - totalTarget) < 0.0001) {
+                    // Choose one to be missing
+                    const missingIdx = Math.floor(Math.random() * parts.length);
+                    const answer = parts[missingIdx].value;
+                    parts[missingIdx].isMissing = true;
+                    return { parts, answer, sig: signatureStr };
+                }
+                attempts++;
+            }
+            
+            // Fallback to a simple 2/4 if everything fails
+            return { 
+                parts: [{...FIGURES[2], isMissing: true}, {...FIGURES[2]}], 
+                answer: 0.25, 
+                sig: '2/4' 
+            };
+        }
+
+        function newPuzzle(side) {
+            const puzzle = generateBar();
+            if (side === 'left') state.currentPuzzleLeft = puzzle; else state.currentPuzzleRight = puzzle;
+
+            const container = side === 'left' ? DOM.puzzleLeft : DOM.puzzleRight;
+            const topNum = puzzle.sig.split('/')[0];
+            const botNum = puzzle.sig.split('/')[1];
+            
+            container.innerHTML = `<div class="time-signature"><span>${topNum}</span><span>${botNum}</span></div>`;
+
+            puzzle.parts.forEach((p, idx) => {
+                const div = document.createElement('div');
+                div.className = p.isMissing
+                    ? ('puzzle-item missing' + (side === 'right' ? ' missing-red' : ''))
+                    : 'puzzle-item';
+                div.innerHTML = p.isMissing ? '?' : p.icon;
+                container.appendChild(div);
+
+                if (idx < puzzle.parts.length - 1) {
+                    const plus = document.createElement('span');
+                    plus.className = 'plus-sign';
+                    plus.innerText = '+';
+                    container.appendChild(plus);
+                }
+            });
+        }
+
+        function submitAnswer(side, val) {
+            if (!state.isPlaying) return;
+            const puzzle = side === 'left' ? state.currentPuzzleLeft : state.currentPuzzleRight;
+            const panel = document.getElementById('panel-' + side);
+            
+            if (Math.abs(val - puzzle.answer) < 0.0001) {
+                moveRope(side, true);
+                if (side === 'left') state.scoreLeft++; else state.scoreRight++;
+                updateScores();
+                flashPanel(panel, 'success');
+                newPuzzle(side);
+            } else {
+                moveRope(side, false);
+                flashPanel(panel, 'error');
+                panel.classList.add('shake');
+                setTimeout(() => panel.classList.remove('shake'), 450);
+            }
+        }
+
+        function moveRope(actingSide, isCorrect) {
+            const shift = isCorrect ? 3 : -2;
+            if (actingSide === 'left') state.ropePos -= shift; else state.ropePos += shift;
+            if (state.ropePos < 5) endGame('ko', 'blue'); else if (state.ropePos > 95) endGame('ko', 'red');
+            state.ropePos = Math.max(0, Math.min(100, state.ropePos));
+            updateRopeUI();
+        }
+
+        function updateRopeUI() {
+            const offset = state.ropePos - 50;
+            DOM.rope.style.transform = `translateX(${-offset * 12}px)`; 
+            DOM.ropeMark.style.left = `${state.ropePos}%`;
+            const lean = offset * 0.4;
+            DOM.blueFigures.style.transform = `translateX(${offset * 1.5}px) skewX(${lean}deg)`;
+            DOM.redFigures.style.transform = `translateX(${offset * 1.5}px) skewX(${lean}deg)`;
+        }
+
+        function updateScores() {
+            DOM.scoreLeft.innerText = state.scoreLeft;
+            DOM.scoreRight.innerText = state.scoreRight;
+        }
+
+        function flashPanel(el, type) {
+            const cls = type === 'success' ? 'success-flash' : 'error-flash';
+            el.classList.add(cls);
+            setTimeout(() => el.classList.remove(cls), 300);
+        }
+
+        function startAI() {
+            if (state.aiTimeout) clearTimeout(state.aiTimeout);
+            
+            // Scaling logic: Level 1-9, Sub 1-3 -> Total 1 to 27 steps
+            const totalRank = (state.currentLevel - 1) * 3 + state.currentSub;
+            const progress = (totalRank - 1) / 26; // 0 to 1
+
+            // Time scaling: from [5000, 8000] (rank 1) to [400, 800] (rank 27)
+            const minTime = 5000 - (progress * 4600);
+            const maxTime = 8000 - (progress * 7200);
+            
+            // Error scaling: from 0.35 (rank 1) to 0.02 (rank 27)
+            const errorRate = 0.35 - (progress * 0.33);
+
+            function step() {
+                if (!state.isPlaying || state.mode !== 'ia') return;
+                state.aiTimeout = setTimeout(() => {
+                    if (!state.isPlaying) return;
+                    const isWrong = Math.random() < errorRate;
+                    let ans = state.currentPuzzleRight.answer;
+                    if (isWrong) {
+                        const allPossible = getAvailableFigures();
+                        const wrong = allPossible.filter(f => Math.abs(f.value - ans) > 0.0001);
+                        if (wrong.length > 0) {
+                            ans = wrong[Math.floor(Math.random() * wrong.length)].value;
+                        }
+                    }
+                    submitAnswer('right', ans);
+                    step();
+                }, Math.random() * (maxTime - minTime) + minTime);
+            }
+            step();
+        }
+
+        function endGame(reason, winnerSide) {
+            state.isPlaying = false;
+            clearInterval(state.timerInterval); clearTimeout(state.aiTimeout);
+            const opponentName = state.mode === 'duel' ? "JUGADOR 2" : "LA IA";
+            let winner = (reason === 'ko') ? (winnerSide === 'blue' ? "JUGADOR 1" : opponentName) : (state.ropePos < 50 ? "JUGADOR 1" : (state.ropePos > 50 ? opponentName : "EMPAT"));
+            
+            if (winner === "EMPAT") {
+                DOM.victoryText.innerText = "EMPAT!";
+            } else {
+                // Formatting "GUANYA EL JUGADOR 1" vs "GUANYA LA IA"
+                const prefix = (winner === "LA IA") ? "GUANYA " : "GUANYA EL ";
+                DOM.victoryText.innerText = prefix + winner + "!";
+            }
+            
+            DOM.victoryText.className = (winner === "JUGADOR 1") ? "winner-blue" : (winner === "EMPAT" ? "" : "winner-red");
+            DOM.victorySub.innerText = (reason === 'ko') ? "Victòria aixafadora per K.O.!" : "S'ha acabat el temps. Gran esforç!";
+            DOM.screens.game.classList.remove('active');
+            DOM.screens.game.style.display = 'none';
+            DOM.screens.result.style.display = 'flex';
+            DOM.screens.result.classList.add('active');
+        }
+
+        function resetToMenu() {
+            DOM.screens.result.classList.remove('active');
+            DOM.screens.result.style.display = 'none';
+            DOM.screens.game.classList.remove('active');
+            DOM.screens.game.style.display = 'none';
+            DOM.screens.start.style.display = 'flex';
+            DOM.screens.start.classList.add('active');
+        }
+    </script>
+</body>
+</html>
