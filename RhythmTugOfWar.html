@@ -109,14 +109,15 @@
 
         /* --- NEW LEVEL SELECTOR --- */
         .level-selector-complex {
-            margin-top: 1.5rem;
-            max-height: 420px;
+            margin-top: 2rem;
+            max-height: 460px;
             overflow-y: auto;
-            padding: 1.5rem;
-            background: rgba(248, 250, 252, 0.8);
-            border-radius: 2rem;
-            border: 1px solid #e2e8f0;
-            backdrop-filter: blur(10px);
+            padding: 2rem;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.7));
+            border-radius: 2.5rem;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
         }
         .level-group-row {
             margin-bottom: 2.5rem;
@@ -144,20 +145,23 @@
         }
         
         .level-btn {
-            background: white;
+            background: linear-gradient(135deg, #ffffff, #f8fafc);
             border: 2px solid #e2e8f0;
-            padding: 1rem;
-            border-radius: 1.25rem;
+            padding: 1.1rem;
+            border-radius: 1.3rem;
             cursor: pointer;
             font-weight: 800;
             font-size: 1rem;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1);
             display: flex;
             flex-direction: column;
             align-items: center;
-            color: #64748b;
+            color: #475569;
             position: relative;
             overflow: hidden;
+            border-image: initial;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            backdrop-filter: blur(5px);
         }
         .level-btn::before {
             content: ""; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
@@ -191,39 +195,79 @@
 
         /* --- LANDING SCREEN --- */
         #landing-screen {
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            color: white;
-            overflow-y: auto;
+            background: radial-gradient(circle at 25% 30%, #0f172a, #1e293b 70%);
+            backdrop-filter: blur(10px);
+            color: #f1f5f9;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 2rem;
+            padding: 2rem;
+            animation: pulse 3s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
         }
         .landing-content {
-            max-width: 900px; width: 100%; text-align: center; padding: 4rem 2rem;
-            animation: fadeIn 1s ease-out;
+            max-width: 960px; width: 100%; text-align: center; padding: 5rem 2rem;
+            background: rgba(255,255,255,0.05);
+            border-radius: 2rem;
+            backdrop-filter: blur(20px);
+            animation: fadeIn 1.2s ease-out;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.25);
         }
         .landing-logo {
-            font-size: 5rem; font-weight: 900; line-height: 1; margin-bottom: 2rem;
+            font-size: 6rem; font-weight: 900; line-height: 1; margin-bottom: 2.5rem;
             background: linear-gradient(to right, #60a5fa, #c084fc, #f472b6);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            letter-spacing: -4px;
+            -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+            letter-spacing: -5px;
+            text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            -webkit-font-smoothing: antialiased;
         }
         .instructions-grid {
-            display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; margin: 3rem 0;
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2.5rem; margin: 3.5rem 0;
         }
         .ins-card {
-            background: rgba(255,255,255,0.05); padding: 2rem; border-radius: 2rem;
-            border: 1px solid rgba(255,255,255,0.1); transition: transform 0.3s;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+            padding: 2.5rem; border-radius: 2rem;
+            border: 1px solid rgba(255,255,255,0.15);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1);
+            backdrop-filter: blur(10px);
         }
-        .ins-card:hover { transform: translateY(-10px); background: rgba(255,255,255,0.08); }
-        .ins-icon { font-size: 3rem; margin-bottom: 1rem; display: block; }
-        .ins-card h3 { font-size: 1.25rem; margin-bottom: 0.75rem; color: #60a5fa; }
-        .ins-card p { font-size: 0.95rem; color: #94a3b8; line-height: 1.6; }
-
-        .btn-start-hero {
-            padding: 1.5rem 4rem; font-size: 1.5rem; font-weight: 800;
-            background: white; color: #0f172a; border-radius: 5rem;
-            border: none; cursor: pointer; transition: all 0.3s;
+        .ins-card:hover {
+            transform: translateY(-15px) scale(1.02);
+            background: linear-gradient(135deg, rgba(255,255,255,0.15), rgba(255,255,255,0.1));
             box-shadow: 0 20px 40px rgba(0,0,0,0.3);
         }
-        .btn-start-hero:hover { transform: scale(1.05); box-shadow: 0 25px 50px rgba(0,0,0,0.4); background: #f8fafc; }
+        .ins-icon { font-size: 3.5rem; margin-bottom: 1.5rem; display: block; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2)); }
+        .ins-card h3 { font-size: 1.4rem; margin-bottom: 1rem; color: #60a5fa; font-weight: 800; }
+        .ins-card p { font-size: 1rem; color: #cbd5e8; line-height: 1.7; }
+
+        .btn-start-hero {
+            padding: 1.8rem 5rem; font-size: 1.6rem; font-weight: 800;
+            background: linear-gradient(135deg, #60a5fa, #c084fc); color: white; border-radius: 5rem;
+            border: none; cursor: pointer; transition: all 0.3s;
+            box-shadow: 0 25px 50px rgba(96, 165, 250, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-start-hero::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+        .btn-start-hero:hover {
+            transform: scale(1.05);
+            box-shadow: 0 30px 60px rgba(96, 165, 250, 0.6);
+        }
+        .btn-start-hero:hover::before {
+            left: 100%;
+        }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -573,6 +617,7 @@
         </div>
     </div>
 
+    <script src="bridge.js"></script>
     <script>
         const FIGURES = [
             { id: 'redonda',        value: 1.0,    dotted: false, icon: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="30" stroke="currentColor" stroke-width="6" fill="none"/></svg>' },
@@ -701,15 +746,8 @@
             const levelData = LEVEL_GROUPS.find(g => g.id === state.currentLevel);
             const signatureStr = levelData.sigs[Math.floor(Math.random() * levelData.sigs.length)];
             
-            // Calculate barMax based on signature
             const [num, den] = signatureStr.split('/').map(Number);
-            const barMax = (num * (1 / den)) / 0.25 * 0.25; // Normalizing to our figure units (1.0 = 4/4)
-            // Wait, our 1.0 = 4 beats. 
-            // 2/4 = 2 beats = 0.5
-            // 6/8 = 6 * 1/8 = 0.75 beats (relative to 4/4=1)
-            // The math is: (num / den) * 4 * 0.25 = num / den. 
-            // Example 6/8: 6/8 = 0.75. Correct.
-            const totalTarget = num / den * 1.0; 
+            const totalTarget = num / den * 1.0;
 
             const avail = getAvailableFigures();
             const candidates = avail.filter(f => f.value <= totalTarget);
@@ -874,6 +912,14 @@
             
             DOM.victoryText.className = (winner === "JUGADOR 1") ? "winner-blue" : (winner === "EMPAT" ? "" : "winner-red");
             DOM.victorySub.innerText = (reason === 'ko') ? "Victòria aixafadora per K.O.!" : "S'ha acabat el temps. Gran esforç!";
+
+            if (window.AulaTechBridge) {
+                window.AulaTechBridge.send('tira-la-corda', {
+                    completat: winner === "JUGADOR 1",
+                    tempsMs: (60 - state.timer) * 1000,
+                });
+            }
+
             DOM.screens.game.classList.remove('active');
             DOM.screens.game.style.display = 'none';
             DOM.screens.result.style.display = 'flex';
