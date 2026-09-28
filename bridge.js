@@ -92,6 +92,22 @@ window.AulaTechBridge = AulaTechBridge;
       method: 'POST',
       headers: { 'Content-Type': 'application/json', apikey: AK, Authorization: 'Bearer ' + tok },
       body: JSON.stringify(d.data),
-    }).catch(function () { /* sense xarxa: es perd la partida, però el joc no es trenca */ });
+    }).then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (j) {
+        // El servidor diu què ha pagat: el cartell d'enhorabona no s'inventa res.
+        if (j) window.dispatchEvent(new CustomEvent('at-game-paid', { detail: j }));
+      })
+      .catch(function () { /* sense xarxa: es perd la partida, però el joc no es trenca */ });
   });
+})();
+
+/* Cartell de final de partida, compartit per tots els jocs. Un joc que en
+   vulgui un de propi només ha de posar window.AT_SENSE_CARTELL = true. */
+(function () {
+  if (window.__atFinalCarregat) return;
+  window.__atFinalCarregat = true;
+  var s = document.createElement('script');
+  s.src = '/1.Gamificacion/_tools/at-final.js';
+  s.async = true;
+  document.head.appendChild(s);
 })();
