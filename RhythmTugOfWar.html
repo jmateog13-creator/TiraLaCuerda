@@ -726,7 +726,7 @@
             state.timerInterval = setInterval(() => {
                 state.timer--;
                 DOM.timer.innerText = state.timer;
-                if (state.timer <= 0) endGame('timeout');
+                // política 1★, 28-09-2026: el rellotge és informatiu, no acaba la partida.
             }, 1000);
         }
 
@@ -870,8 +870,9 @@
             const progress = (totalRank - 1) / 26; // 0 to 1
 
             // Time scaling: from [5000, 8000] (rank 1) to [400, 800] (rank 27)
-            const minTime = 5000 - (progress * 4600);
-            const maxTime = 8000 - (progress * 7200);
+            // política 1★, 28-09-2026: finestra de reacció fixa i ampla a tots els nivells.
+            const minTime = 5000;
+            const maxTime = 8000;
             
             // Error scaling: from 0.35 (rank 1) to 0.02 (rank 27)
             const errorRate = 0.35 - (progress * 0.33);
