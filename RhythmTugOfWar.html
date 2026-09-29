@@ -55,6 +55,14 @@
             display: flex;
         }
 
+        /* 29-09-2026 · A classe el boto "Comenca l'aventura" quedava fora de
+           pantalla en portatils: la pantalla era `fixed` amb el body a
+           `overflow:hidden`, o sigui contingut retallat i sense scroll. El joc
+           semblava trencat. Amb scroll propi i centrat per marges, cap pantalla
+           pot amagar el seu propi boto. */
+        .screen:not(#game-screen) { overflow-y: auto; justify-content: flex-start; }
+        .screen:not(#game-screen).active > * { margin-block: auto; }
+
         #game-screen.active {
             display: grid;
         }
@@ -208,7 +216,7 @@
             50% { opacity: 0.7; }
         }
         .landing-content {
-            max-width: 960px; width: 100%; text-align: center; padding: 5rem 2rem;
+            max-width: 960px; width: 100%; text-align: center; padding: 2.5rem 2rem;
             background: rgba(255,255,255,0.05);
             border-radius: 2rem;
             backdrop-filter: blur(20px);
@@ -298,7 +306,7 @@
             transition: background 0.3s;
             min-width: 0; overflow: hidden; z-index: 100; /* Above the rope if it leaks */
         }
-    </style>        .side-panel.success-flash { background-color: rgba(16, 185, 129, 0.1); }
+        .side-panel.success-flash { background-color: rgba(16, 185, 129, 0.1); }
         .side-panel.error-flash { background-color: rgba(239, 68, 68, 0.1); }
 
         .team-header { padding: 1rem; border-radius: 1.25rem; color: white; text-align: center; margin-bottom: 1.5rem; }
