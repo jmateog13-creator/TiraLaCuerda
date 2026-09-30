@@ -279,6 +279,20 @@
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
+        /* 30-09-2026 — portàtils de classe (720–768px d'alt): la portada feia ~940px i el botó
+           «Comença l'aventura» quedava amagat sota el plec. Es compacta sense canviar-ne l'estil. */
+        @media (max-height: 900px) {
+            #landing-screen { padding: 1rem; }
+            .landing-content { padding: 1.4rem 2rem; }
+            .landing-logo { font-size: clamp(2.6rem, 9vh, 6rem); margin-bottom: 0.8rem; letter-spacing: -3px; }
+            .landing-content > p { font-size: 1.2rem !important; margin-bottom: 0.6rem !important; }
+            .instructions-grid { margin: 1rem 0 1.4rem; gap: 1.2rem; }
+            .ins-card { padding: 1.1rem 1.4rem; }
+            .ins-icon { font-size: 2.2rem; margin-bottom: 0.5rem; }
+            .ins-card h3 { margin-bottom: 0.4rem; }
+            .btn-start-hero { padding: 1.1rem 3.4rem; font-size: 1.3rem; }
+        }
+
         .btn-exit {
             position: absolute; top: 1.5rem; right: 1.5rem; width: 45px; height: 45px;
             background: white; border: none; border-radius: 50%;
