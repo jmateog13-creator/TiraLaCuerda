@@ -709,6 +709,17 @@
             if (activeBtn) activeBtn.classList.add('active');
         }
 
+        // Mode 1r ESO (?curs=1): només els nivells Bàsic (x.1) dels compassos simples (1.1-4.1).
+        if (new URLSearchParams(location.search).get('curs') === '1') {
+            document.querySelectorAll('.level-btn').forEach(b => {
+                const [l, sb] = b.getAttribute('onclick').match(/\d+/g).map(Number);
+                if (l > 4 || sb > 1) b.style.display = 'none';
+            });
+            document.querySelectorAll('.level-group-row').forEach(r => {
+                if (![...r.querySelectorAll('.level-btn')].some(b => b.style.display !== 'none')) r.style.display = 'none';
+            });
+        }
+
         function startGame(mode) {
             state.mode = mode;
             state.isPlaying = true;
