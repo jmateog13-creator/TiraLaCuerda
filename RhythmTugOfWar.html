@@ -718,6 +718,12 @@
             document.querySelectorAll('.level-group-row').forEach(r => {
                 if (![...r.querySelectorAll('.level-btn')].some(b => b.style.display !== 'none')) r.style.display = 'none';
             });
+            // Fora els botons de figures que no són de 1r (semicorxera i corxera amb puntet).
+            document.querySelectorAll('.rhythm-btn').forEach(b => {
+                if (/0\.0625|0\.1875/.test(b.getAttribute('onpointerdown') || '')) b.style.display = 'none';
+            });
+            const sub = document.querySelector('#start-screen .subtitle');
+            if (sub) sub.innerHTML = 'Al compàs hi falta una figura.<br>Troba-la abans que el rival i estira la corda!';
         }
 
         function startGame(mode) {
