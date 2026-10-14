@@ -955,7 +955,11 @@
 
             if (window.AulaTechBridge) {
                 window.AulaTechBridge.send('tira-la-corda', {
-                    completat: winner === "JUGADOR 1",
+                    // Paga guanyar la IA al nivell més alt (9.3; a 1r, 4.1). Mai el duel 1v1:
+                    // abans qualsevol victòria, a qualsevol nivell o contra un company quiet, pagava.
+                    completat: state.mode === 'ia' && winner === "JUGADOR 1" && (new URLSearchParams(location.search).get('curs') === '1'
+                        ? state.currentLevel === 4 && state.currentSub === 1
+                        : state.currentLevel === LEVEL_GROUPS[LEVEL_GROUPS.length - 1].id && state.currentSub === 3),
                     tempsMs: (60 - state.timer) * 1000,
                 });
             }
