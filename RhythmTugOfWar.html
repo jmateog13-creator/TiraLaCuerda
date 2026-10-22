@@ -709,18 +709,36 @@
             if (activeBtn) activeBtn.classList.add('active');
         }
 
-        // Mode 1r ESO (?curs=1): només els nivells Bàsic (x.1) dels compassos simples (1.1-4.1).
-        if (new URLSearchParams(location.search).get('curs') === '1') {
+        // Mode 1r ESO (?curs=1): 8 nivells en ordre (1.1, 1.2 … 4.1, 4.2) dels compassos simples.
+        // Bàsic (x.1) = negra o més; Intermedi (x.2) = + corxera. Mai semicorxera ni corxera amb puntet.
+        // Política 1★: mínim 6 nivells i cal superar-los en ordre (guanyar la IA obre el següent).
+        const CURS1 = new URLSearchParams(location.search).get('curs') === '1';
+        const ORDRE_C1 = ['1,1', '1,2', '2,1', '2,2', '3,1', '3,2', '4,1', '4,2'];
+        const C1_KEY = 'tira_corda_unlock_c1';
+        function c1Obert() { try { return Math.max(0, parseInt(localStorage.getItem(C1_KEY)) || 0); } catch (e) { return 0; } }
+        function c1Pinta() {
+            const obert = c1Obert();
             document.querySelectorAll('.level-btn').forEach(b => {
                 const [l, sb] = b.getAttribute('onclick').match(/\d+/g).map(Number);
-                if (l > 4 || sb > 1) b.style.display = 'none';
+                const i = ORDRE_C1.indexOf(l + ',' + sb);
+                if (i < 0) return;
+                b.disabled = i > obert;
+                b.style.opacity = i > obert ? '0.35' : '';
+                b.title = i > obert ? 'Guanya la IA al nivell anterior per obrir-lo' : '';
             });
+        }
+        if (CURS1) {
+            document.querySelectorAll('.level-btn').forEach(b => {
+                const [l, sb] = b.getAttribute('onclick').match(/\d+/g).map(Number);
+                if (l > 4 || sb > 2) b.style.display = 'none';
+            });
+            c1Pinta();
             document.querySelectorAll('.level-group-row').forEach(r => {
                 if (![...r.querySelectorAll('.level-btn')].some(b => b.style.display !== 'none')) r.style.display = 'none';
             });
             // Fora els botons de figures que no són de 1r (semicorxera i corxera amb puntet).
             document.querySelectorAll('.rhythm-btn').forEach(b => {
-                if (/0\.0625|0\.1875/.test(b.getAttribute('onpointerdown') || '')) b.style.display = 'none';
+                if (/0\.0625|0\.1875/.test(b.getAttribute('onpointerdown') || '')) { b.style.display = 'none'; b.dataset.c1off = '1'; }
             });
             const sub = document.querySelector('#start-screen .subtitle');
             if (sub) sub.innerHTML = 'Al compàs hi falta una figura.<br>Troba-la abans que el rival i estira la corda!';
@@ -740,7 +758,7 @@
             const levelData = LEVEL_GROUPS.find(g => g.id === state.currentLevel);
             const showDots = levelData.dots || state.currentSub === 3;
             document.querySelectorAll('.dot-btn').forEach(btn => {
-                btn.style.display = showDots ? 'flex' : 'none';
+                btn.style.display = showDots && !btn.dataset.c1off ? 'flex' : 'none';
             });
 
             if (mode === 'ia') {
@@ -775,8 +793,9 @@
             const useDotted = levelData.dots || state.currentSub === 3;
             // Also restrict smaller notes in sub-level 1
             let avail = FIGURES;
+            if (CURS1) avail = FIGURES.filter(f => f.id !== 'semicorchea' && f.id !== 'corchea-p');
             if (state.currentSub === 1) {
-                avail = FIGURES.filter(f => f.value >= 0.25); // Minimum Negra
+                avail = avail.filter(f => f.value >= 0.25); // Minimum Negra
             }
             return useDotted ? avail : avail.filter(f => !f.dotted);
         }
@@ -952,13 +971,17 @@
             
             DOM.victoryText.className = (winner === "JUGADOR 1") ? "winner-blue" : (winner === "EMPAT" ? "" : "winner-red");
             DOM.victorySub.innerText = (reason === 'ko') ? "Victòria aixafadora per K.O.!" : "S'ha acabat el temps. Gran esforç!";
+            if (CURS1 && state.mode === 'ia' && winner === "JUGADOR 1") {
+                const i = ORDRE_C1.indexOf(state.currentLevel + ',' + state.currentSub);
+                if (i === c1Obert() && i < ORDRE_C1.length - 1) { try { localStorage.setItem(C1_KEY, String(i + 1)); } catch (e) {} c1Pinta(); }
+            }
 
             if (window.AulaTechBridge) {
                 window.AulaTechBridge.send('tira-la-corda', {
                     // Paga guanyar la IA al nivell més alt (9.3; a 1r, 4.1). Mai el duel 1v1:
                     // abans qualsevol victòria, a qualsevol nivell o contra un company quiet, pagava.
-                    completat: state.mode === 'ia' && winner === "JUGADOR 1" && (new URLSearchParams(location.search).get('curs') === '1'
-                        ? state.currentLevel === 4 && state.currentSub === 1
+                    completat: state.mode === 'ia' && winner === "JUGADOR 1" && (CURS1
+                        ? state.currentLevel === 4 && state.currentSub === 2
                         : state.currentLevel === LEVEL_GROUPS[LEVEL_GROUPS.length - 1].id && state.currentSub === 3),
                     tempsMs: (60 - state.timer) * 1000,
                 });
